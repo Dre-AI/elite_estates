@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
+<?php include 'databaseconnect.php'; ?>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +35,8 @@
             gap: 20px;
         }
 
-        .menu a, .menu button {
+        .menu a,
+        .menu button {
             background-color: #34495e;
             color: white;
             border: none;
@@ -44,8 +47,26 @@
             transition: background-color 0.3s;
         }
 
-        .menu a:hover, .menu button:hover {
+        .menu a:hover,
+        .menu button:hover {
             background-color: #1abc9c;
+        }
+
+        .details a,
+        .details button {
+            background-color: #34495e;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        
+        .details a {
+            margin-top: 30px;
         }
 
         .search-filter {
@@ -122,6 +143,7 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>Elite Estates</h1>
@@ -129,6 +151,7 @@
             <a href="index.html">Home</a>
             <button id="hireButton">For Hire</button>
             <button id="saleButton">For Sale</button>
+            <a href="add_property.php">Add Property</a>
         </div>
         <div class="search-filter">
             <input type="text" placeholder="Search properties...">
@@ -136,48 +159,47 @@
         </div>
     </header>
     <section id="propertySection" class="property-list">
-      <!-- Example Property Cards -->
-      <div class="property-card">
-          <img src="images/cozzy.jpeg" alt="Property">
-          <div class="details">
-              <h3>cozzy cottage</h3>
-              <p>Location: Karen, Nairobi</p>
-              <p>5 Bedrooms 4 Bathroom</p>
-              <p>FOR SALE</p>
-              <p class="price">$200,000</p>
-              <p class="agent">Agent: <span>Jane Smith</span> | Contact: <span>(254) 987-6543</span></p>
-          </div>
-      </div>
-      <div class="property-card">
-        <img src="images/studio.jpeg" alt="Property">
-        <div class="details">
-            <h3>Studio Apartment</h3>
-            <p>Location: Mirema Drive</p>
-            <p>1 Bed 1 Bathroom</p>
-            <p>FOR HIRE</p>
-            <p class="price">$100/month</p>
-            <p class="agent">Agent: <span>DRE</span> | Contact: <span>(254) 123-45678</span></p>
-        </div>
-    </div>
-    <div class="property-card">
-      <img src="images/mod.jpeg" alt="Property">
-      <div class="details">
-          <h3>Modern Apartment</h3>
-          <p>Location: Syokimau, Nairobi</p>
-          <p>6 Bedrooms 5 Bathroom</p>
-          <p>FOR SALE</p>
-          <p class="price">$600,000</p>
-          <p class="agent">Agent: <span>Jane Smith</span> | Contact: <span>(254) 123-45678</span></p>
-      </div>
-  </div>
+        <?php
+        $query = "SELECT * FROM properties";
+        $result = $conn->query($query);
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+        ?>
+                <div class="property-card">
+                    <img src="<?php echo htmlspecialchars($row['image']); ?>" alt="Property">
+
+                    <div class="details">
+                        <h3>Name: <?php echo htmlspecialchars($row['name']); ?></h3>
+                        <p>Location: <?php echo htmlspecialchars($row['location']); ?></p>
+                        <p>Size: <?php echo htmlspecialchars($row['size']); ?> </p>
+                        <p>Type: <?php echo htmlspecialchars($row['type']); ?></p>
+                        <p class="price">Price: <?php echo htmlspecialchars($row['price']); ?></p>
+                        <p class="agent">Agent: <span><?php echo htmlspecialchars($row['agent_name']); ?></span> | Contact: <span><?php echo htmlspecialchars($row['agent_contact']); ?></span></p>
+
+
+                        <a href="edit_property.php?id=<?php echo $row['id']; ?>" class="btn edit-btn">Edit</a>
+                        <a href="delete_property.php?id=<?php echo $row['id']; ?>" class="btn delete-btn" onclick="return confirm('Are you sure you want to delete this property?');">Delete</a>
+
+                    </div>
+                </div>
+        <?php
+            }
+        } else {
+            echo "<p>No properties found.</p>";
+        }
+        ?>
+
+
+
     </section>
     <script>
-      const hireButton = document.getElementById('hireButton');
-      const saleButton = document.getElementById('saleButton');
-      const propertySection = document.getElementById('propertySection');
+        const hireButton = document.getElementById('hireButton');
+        const saleButton = document.getElementById('saleButton');
+        const propertySection = document.getElementById('propertySection');
 
-      hireButton.addEventListener('click', () => {
-          propertySection.innerHTML = `
+        hireButton.addEventListener('click', () => {
+            propertySection.innerHTML = `
               <div class="property-card">
         <img src="images/studio.jpeg" alt="Property">
         <div class="details">
@@ -204,10 +226,10 @@
                       <p class="price">$3,200/month</p>
                   </div>
               </div>`;
-      });
+        });
 
-      saleButton.addEventListener('click', () => {
-          propertySection.innerHTML = `
+        saleButton.addEventListener('click', () => {
+            propertySection.innerHTML = `
              <div class="property-card">
           <img src="images/cozzy.jpeg" alt="Property">
           <div class="details">
@@ -236,7 +258,8 @@
                       <p class="price">$750,000</p>
                   </div>
               </div>`;
-      });
-  </script>
+        });
+    </script>
 </body>
+
 </html>
