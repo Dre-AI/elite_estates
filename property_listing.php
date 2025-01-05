@@ -174,10 +174,10 @@
             $query .= " WHERE name LIKE '%$searchQuery%' 
                         OR type LIKE '%$searchQuery%' 
                         OR size LIKE '%$searchQuery%' 
-                        OR location LIKE '%$searchQuery%'"; // Add more fields if necessary
+                        OR location LIKE '%$searchQuery%'";
         }
 
-        
+
         $result = $conn->query($query);
 
         if ($result->num_rows > 0) {
