@@ -38,11 +38,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $price = $_POST['price'];
     $agent_name = $_POST['agent_name'];
     $agent_contact = $_POST['agent_contact'];
+    $image = $property['image'];
+
+
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
+        $image_tmp_name = $_FILES['image']['tmp_name'];
+        $image_name = basename($_FILES['image']['name']);
+        $image_upload_path = "uploads/" . $image_name;
+
+        if (!move_uploaded_file($image_tmp_name, $image_upload_path)) {
+            echo "Failed to upload image.";
+            exit;
+        }
+
+        $image = $image_upload_path;
+    }
+
 
     // Update the property in the database
-    $update_query = "UPDATE properties SET name = ?, location = ?, size = ?, type = ?, price = ?, agent_name = ?, agent_contact = ? WHERE id = ?";
+    $update_query = "UPDATE properties SET name = ?, location = ?, size = ?, type = ?, price = ?, agent_name = ?, agent_contact = ?, image = ? WHERE id = ?";
     $stmt = $conn->prepare($update_query);
-    $stmt->bind_param("ssssssis", $name, $location, $size, $type, $price, $agent_name, $agent_contact, $property_id);
+
+    if ($stmt === false) {
+        die("Prepare failed: " . $conn->error);
+    }
+
+    $stmt->bind_param("ssssssisi", $name, $location, $size, $type, $price, $agent_name, $agent_contact, $image, $property_id);
 
     if ($stmt->execute()) {
         echo "Property updated successfully.";
@@ -56,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <div class="container mt-5">
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
 
 
         <div class="mb-3">
@@ -76,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <div class="mb-3">
             <label for="status">Type:</label>
-            <input type="text" class="form-control" id="status" name="status" value="<?php echo htmlspecialchars($property['type']); ?>" required>
+            <input type="text" class="form-control" id="type" name="type" value="<?php echo htmlspecialchars($property['type']); ?>" required>
         </div>
 
         <div class="mb-3">
@@ -86,12 +107,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <div class="mb-3">
             <label for="agent">Agent:</label>
-            <input type="text" class="form-control" id="agent" name="agent" value="<?php echo htmlspecialchars($property['agent_name']); ?>" required>
+            <input type="text" class="form-control" id="agent" name="agent_name" value="<?php echo htmlspecialchars($property['agent_name']); ?>" required>
         </div>
 
         <div class="mb-3">
             <label for="contact">Contact:</label>
-            <input type="text" class="form-control" id="contact" name="contact" value="<?php echo htmlspecialchars($property['agent_contact']); ?>" required>
+            <input type="text" class="form-control" id="contact" name="agent_contact" value="<?php echo htmlspecialchars($property['agent_contact']); ?>" required>
+        </div>
+
+
+        <div class="mb-3">
+            <label for="image" class="form-label">Upload Image</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*">
         </div>
 
         <button class="btn btn-primary" type="submit">Update Property</button>

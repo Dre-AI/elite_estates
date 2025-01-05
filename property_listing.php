@@ -64,7 +64,7 @@
             transition: background-color 0.3s;
         }
 
-        
+
         .details a {
             margin-top: 30px;
         }
@@ -153,14 +153,31 @@
             <button id="saleButton">For Sale</button>
             <a href="add_property.php">Add Property</a>
         </div>
+
         <div class="search-filter">
-            <input type="text" placeholder="Search properties...">
-            <button>Search</button>
+            <form method="GET" action="">
+                <input type="text" name="search" placeholder="Search properties...">
+                <button type="submit">Search</button>
+            </form>
         </div>
+
     </header>
     <section id="propertySection" class="property-list">
         <?php
+
+        $searchQuery = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+
         $query = "SELECT * FROM properties";
+
+
+        if (!empty($searchQuery)) {
+            $query .= " WHERE name LIKE '%$searchQuery%' 
+                        OR type LIKE '%$searchQuery%' 
+                        OR size LIKE '%$searchQuery%' 
+                        OR location LIKE '%$searchQuery%'"; // Add more fields if necessary
+        }
+
+        
         $result = $conn->query($query);
 
         if ($result->num_rows > 0) {
@@ -198,67 +215,38 @@
         const saleButton = document.getElementById('saleButton');
         const propertySection = document.getElementById('propertySection');
 
-        hireButton.addEventListener('click', () => {
-            propertySection.innerHTML = `
-              <div class="property-card">
-        <img src="images/studio.jpeg" alt="Property">
-        <div class="details">
-            <h3>Studio Apartment</h3>
-            <p>Location: Mirema Drive</p>
-            <p>1 Bed 1 Bathroom</p>
-            <p class="price">$100/month</p>
-            <p class="agent">Agent: <span>DRE</span> | Contact: <span>(254) 123-45678</span></p>
-        </div>
-    </div>
-              <div class="property-card">
-                  <img src="https://via.placeholder.com/300" alt="Property">
-                  <div class="details">
-                      <h3>Cozy Studio</h3>
-                      <p>Location: San Francisco</p>
-                      <p class="price">$1,800/month</p>
-                  </div>
-              </div>
-              <div class="property-card">
-                  <img src="https://via.placeholder.com/300" alt="Property">
-                  <div class="details">
-                      <h3>Luxury Loft</h3>
-                      <p>Location: Chicago</p>
-                      <p class="price">$3,200/month</p>
-                  </div>
-              </div>`;
-        });
+        function fetchProperties(type) {
+            fetch(`fetch_properties.php?type=${type}`)
+                .then(response => response.json())
+                .then(properties => {
+                    propertySection.innerHTML = '';
+                    if (properties.length > 0) {
+                        properties.forEach(property => {
+                            const propertyCard = `
+                        <div class="property-card">
+                            <img src="${property.image}" alt="Property">
+                            <div class="details">
+                                <h3>Name: ${property.name}</h3>
+                                <p>Location: ${property.location}</p>
+                                <p>Size: ${property.size}</p>
+                                <p>Type: ${property.type}</p>
+                                <p class="price">Price: ${property.price}</p>
+                                <p class="agent">Agent: <span>${property.agent_name}</span> | Contact: <span>${property.agent_contact}</span></p>
+                                <a href="edit_property.php?id=${property.id}" class="btn edit-btn">Edit</a>
+                                <a href="delete_property.php?id=${property.id}" class="btn delete-btn" onclick="return confirm('Are you sure you want to delete this property?');">Delete</a>
+                            </div>
+                        </div>`;
+                            propertySection.innerHTML += propertyCard;
+                        });
+                    } else {
+                        propertySection.innerHTML = '<p>No properties found.</p>';
+                    }
+                })
+                .catch(error => console.error('Error fetching properties:', error));
+        }
 
-        saleButton.addEventListener('click', () => {
-            propertySection.innerHTML = `
-             <div class="property-card">
-          <img src="images/cozzy.jpeg" alt="Property">
-          <div class="details">
-              <h3>cozzy cottage</h3>
-              <p>Location: Karen, Nairobi</p>
-              <p>5 Bedrooms 4 Bathroom</p>
-              <p class="price">$200,000</p>
-              <p class="agent">Agent: <span>Jane Smith</span> | Contact: <span>(254) 987-6543</span></p>
-          </div>
-      </div>
-              <div class="property-card">
-      <img src="images/mod.jpeg" alt="Property">
-      <div class="details">
-          <h3>Modern Apartment</h3>
-          <p>Location: Syokimau, Nairobi</p>
-          <p>6 Bedrooms 5 Bathroom</p>
-          <p class="price">$600,000</p>
-          <p class="agent">Agent: <span>Jane Smith</span> | Contact: <span>(254) 123-45678</span></p>
-      </div>
-  </div>
-              <div class="property-card">
-                  <img src="https://via.placeholder.com/300" alt="Property">
-                  <div class="details">
-                      <h3>Country Estate</h3>
-                      <p>Location: Vermont</p>
-                      <p class="price">$750,000</p>
-                  </div>
-              </div>`;
-        });
+        hireButton.addEventListener('click', () => fetchProperties('Hire'));
+        saleButton.addEventListener('click', () => fetchProperties('Sale'));
     </script>
 </body>
 
